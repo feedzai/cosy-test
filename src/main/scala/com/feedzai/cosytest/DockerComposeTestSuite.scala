@@ -78,7 +78,6 @@ trait DockerComposeTestSuite extends TestSuite with BeforeAndAfterAll {
         }
         logger.info("Containers removed!")
       }
-    }
-    finally {parallelTestLimitSemaphore.release()}
+    } finally { parallelTestLimitSemaphore.release() }
   }
 }

@@ -20,7 +20,7 @@ case class DockerComposeSetup(
   private val logger = LoggerFactory.getLogger(getClass)
   implicit val executionContext: ExecutionContext = ExecutionContext.Implicits.global
 
-  private val DefaultLongCommandTimeOut  = 5.minutes
+  private val DefaultLongCommandTimeOut = 5.minutes
   private val DefaultShortCommandTimeOut = 1.minutes
 
   /**
@@ -31,7 +31,6 @@ case class DockerComposeSetup(
    * @return true if all containers started and achieved a healthy state otherwise false
    */
   def up(timeOut: Duration): Boolean = dockerComposeUp() && waitForAllHealthyContainers(timeOut)
-
 
   /**
    * Executes docker-compose down command using setup defined.
@@ -64,10 +63,12 @@ case class DockerComposeSetup(
     val services = getServices()
 
     val files = services.flatMap { service =>
-      FileTools.createFile(
-        Paths.get(s"log_$service"),
-        getContainerLogs(Some(service))
-      ).toOption
+      FileTools
+        .createFile(
+          Paths.get(s"log_$service"),
+          getContainerLogs(Some(service))
+        )
+        .toOption
     }
     FileTools.zip(target.resolve(s"$fileName.zip").toAbsolutePath, files)
   }
@@ -80,8 +81,8 @@ case class DockerComposeSetup(
       port.toString
     )
     runCmdWithOutput(command, workingDirectory.toFile, environment, DefaultShortCommandTimeOut) match {
-      case Success(output) if output.nonEmpty => output.head.replaceAll("^.+:","")
-      case _ => ""
+      case Success(output) if output.nonEmpty => output.head.replaceAll("^.+:", "")
+      case _                                  => ""
     }
   }
 
@@ -95,7 +96,7 @@ case class DockerComposeSetup(
       case Success(output) =>
         output
       case Failure(f) =>
-        logger.error(s"Failed to get service container Ids!",f)
+        logger.error(s"Failed to get service container Ids!", f)
         List.empty
     }
   }
@@ -110,11 +111,10 @@ case class DockerComposeSetup(
       case Success(output) =>
         output
       case Failure(f) =>
-        logger.error(s"Failed to get all project container Ids!",f)
+        logger.error(s"Failed to get all project container Ids!", f)
         List.empty
     }
   }
-
 
   def getServices(): List[String] = {
     val command =
@@ -126,7 +126,7 @@ case class DockerComposeSetup(
       case Success(output) =>
         output
       case Failure(f) =>
-        logger.error(s"Failed to get all services!",f)
+        logger.error(s"Failed to get all services!", f)
         List.empty
     }
   }
@@ -143,7 +143,7 @@ case class DockerComposeSetup(
       case Success(output) =>
         output.nonEmpty && output.size == 1 && output.head != "<nil>"
       case Failure(f) =>
-        logger.error(s"Failed while checking if container $containerId contains healthcheck!",f)
+        logger.error(s"Failed while checking if container $containerId contains healthcheck!", f)
         false
     }
   }
@@ -185,8 +185,7 @@ case class DockerComposeSetup(
         done = exitValue == 0 && eventBuilder.nonEmpty && eventBuilder.mkString == "healthy"
         if (done) {
           result = eventBuilder.mkString
-        }
-        else {
+        } else {
           Thread.sleep(10.seconds.toMillis)
         }
       }
@@ -208,7 +207,6 @@ case class DockerComposeSetup(
       .forall(waitForHealthyContainer(_, timeout))
   }
 
-
   def getContainerLogs(serviceName: Option[String]): List[String] = {
     val command =
       Seq("docker-compose") ++
@@ -220,7 +218,7 @@ case class DockerComposeSetup(
       case Success(output) =>
         output
       case Failure(f) =>
-        logger.error(s"Failed while retrieving logs of ${serviceName.get}",f)
+        logger.error(s"Failed while retrieving logs of ${serviceName.get}", f)
         List.empty
     }
   }
@@ -235,7 +233,7 @@ case class DockerComposeSetup(
       case Success(output) =>
         output.isEmpty
       case Failure(f) =>
-        logger.error("Failed while checking containers removal",f)
+        logger.error("Failed while checking containers removal", f)
         false
     }
   }
@@ -259,11 +257,15 @@ case class DockerComposeSetup(
    * @param cwd working directory where command will be ran
    * @return a Try object with output lines list if succeeds
    */
-  def runCmdWithOutput(command: Seq[String], cwd: File, envVars: Map[String, String],  timeout: Duration): Try[List[String]] = {
+  def runCmdWithOutput(command: Seq[String],
+                       cwd: File,
+                       envVars: Map[String, String],
+                       timeout: Duration): Try[List[String]] = {
     Try {
       val resultBuffer = new ListBuffer[String]()
       val process =
-        Process(command, cwd, envVars.toSeq: _*).run(ProcessLogger(line => resultBuffer += line, line => logger.debug(line)))
+        Process(command, cwd, envVars.toSeq: _*)
+          .run(ProcessLogger(line => resultBuffer += line, line => logger.debug(line)))
 
       assert(waitProcessExit(process, timeout) == 0, s"Failed to run command: ${command.mkString(" ")}")
       resultBuffer.toList
@@ -277,7 +279,7 @@ case class DockerComposeSetup(
    * @param cwd working directory where command will be ran
    * @return true if command ran with success
    */
-  def runCmd(command: Seq[String], cwd: File, envVars: Map[String, String],  timeout: Duration): Boolean = {
+  def runCmd(command: Seq[String], cwd: File, envVars: Map[String, String], timeout: Duration): Boolean = {
     val process =
       Process(command, cwd, envVars.toSeq: _*).run(ProcessLogger(_ => (), line => logger.debug(line)))
 
@@ -285,6 +287,6 @@ case class DockerComposeSetup(
   }
 
   private def composeFileArguments(files: Seq[Path]): Seq[String] = {
-    files.flatMap(file => Seq("-f",file.toString))
+    files.flatMap(file => Seq("-f", file.toString))
   }
 }

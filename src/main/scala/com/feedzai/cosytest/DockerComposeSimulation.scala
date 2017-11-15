@@ -29,9 +29,9 @@ trait DockerComposeSimulation extends Simulation {
       setup <- dockerSetup
       dumpLocation <- logDumpLocation
       dumpFileName <- logDumpFileName
-    }  setup.dumpLogs(dumpFileName, dumpLocation)
+    } setup.dumpLogs(dumpFileName, dumpLocation)
 
-    if (!keepContainers){
+    if (!keepContainers) {
       dockerSetup.foreach(_.down())
     }
   }
