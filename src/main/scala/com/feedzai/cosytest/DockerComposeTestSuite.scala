@@ -10,7 +10,7 @@ import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 
 trait DockerComposeTestSuite extends TestSuite with BeforeAndAfterAll {
-  protected val logger = LoggerFactory.getLogger(getClass)
+  private val logger = LoggerFactory.getLogger(getClass)
 
   /**
    *  Optional Docker Compose Setup. If None docker will not be used
