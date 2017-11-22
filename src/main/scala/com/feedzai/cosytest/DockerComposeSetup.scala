@@ -196,7 +196,7 @@ case class DockerComposeSetup(
       Await.result(future, timeout)
     } catch {
       case e: TimeoutException =>
-        e.printStackTrace()
+        logger.error(s"Container $containerId didn't change to healthy state in ${timeout.toSeconds} seconds", e)
         false
     }
   }
@@ -244,7 +244,7 @@ case class DockerComposeSetup(
       Await.result(future, timeout)
     } catch {
       case e: TimeoutException =>
-        e.printStackTrace()
+        logger.error(s"Process didn't finish in ${timeout.toSeconds} seconds", e)
         process.destroy()
         process.exitValue()
     }

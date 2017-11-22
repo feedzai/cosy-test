@@ -74,9 +74,8 @@ trait DockerComposeTestSuite extends TestSuite with BeforeAndAfterAll {
           logger.info("Removing containers...")
           val removed = setup.down()
           assert(removed, s"Failed to remove containers in test ${setup.setupName}!")
-
+          logger.info("Containers removed!")
         }
-        logger.info("Containers removed!")
       }
     } finally { parallelTestLimitSemaphore.release() }
   }
