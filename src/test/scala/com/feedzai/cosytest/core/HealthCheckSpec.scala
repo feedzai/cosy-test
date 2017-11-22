@@ -2,12 +2,11 @@ package com.feedzai.cosytest.core
 
 import java.nio.file.Paths
 
-import com.feedzai.cosytest.DockerComposeSetup
+import com.feedzai.cosytest.{CleanUp, DockerComposeSetup}
 import org.scalatest.{FlatSpec, MustMatchers}
 import scala.concurrent.duration._
 
-class HealthCheckSpec extends FlatSpec with MustMatchers {
-
+class HealthCheckSpec extends FlatSpec with MustMatchers with CleanUp {
 
   val setup = DockerComposeSetup(
     "healthy",
@@ -28,13 +27,13 @@ class HealthCheckSpec extends FlatSpec with MustMatchers {
   }
 
   it should "Succeed to wait for all containers be in healthy state" in {
-    setup.dockerComposeUp()   mustEqual true
+    setup.dockerComposeUp() mustEqual true
     setup.waitForAllHealthyContainers(20.seconds) mustBe true
     setup.dockerComposeDown() mustEqual true
   }
 
   it should "Fail to wait for all containers be in healthy state" in {
-    unhealthySetup.dockerComposeUp()   mustEqual true
+    unhealthySetup.dockerComposeUp() mustEqual true
     unhealthySetup.waitForAllHealthyContainers(20.seconds) mustBe false
     unhealthySetup.dockerComposeDown() mustEqual true
   }

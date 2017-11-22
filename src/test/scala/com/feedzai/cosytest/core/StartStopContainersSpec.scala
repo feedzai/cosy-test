@@ -2,10 +2,10 @@ package com.feedzai.cosytest.core
 
 import java.nio.file.Paths
 
-import com.feedzai.cosytest.DockerComposeSetup
+import com.feedzai.cosytest.{CleanUp, DockerComposeSetup}
 import org.scalatest.{FlatSpec, MustMatchers}
 
-class StartStopContainersSpec extends FlatSpec with MustMatchers {
+class StartStopContainersSpec extends FlatSpec with MustMatchers with CleanUp {
 
   val setup = DockerComposeSetup(
     "startstop",
@@ -21,14 +21,13 @@ class StartStopContainersSpec extends FlatSpec with MustMatchers {
     Map.empty
   )
 
-
   it should "Start and stop containers" in {
-    setup.dockerComposeUp()   mustEqual true
+    setup.dockerComposeUp() mustEqual true
     setup.dockerComposeDown() mustEqual true
   }
 
   it must "Fail to start and stop containers" in {
-    invalidSetup.dockerComposeUp()   mustEqual false
+    invalidSetup.dockerComposeUp() mustEqual false
     invalidSetup.dockerComposeDown() mustEqual false
   }
 }
