@@ -51,3 +51,7 @@ credentials += Credentials(
 )
 
 publishTo := Some(Opts.resolver.sonatypeStaging)
+
+/* Test Options */
+
+parallelExecution in Test := false
