@@ -48,6 +48,7 @@ case class DockerComposeSetup(
    */
   def getServiceMappedPort(name: String, bindedPort: Int): Seq[String] = {
     getServiceContainerIds(name)
+      .filter(getContainerMappedPort(_, bindedPort).nonEmpty)
       .map(getContainerMappedPort(_, bindedPort))
   }
 
