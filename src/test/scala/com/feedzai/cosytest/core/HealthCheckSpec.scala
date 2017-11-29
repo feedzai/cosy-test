@@ -2,25 +2,28 @@ package com.feedzai.cosytest.core
 
 import java.nio.file.Paths
 
-import com.feedzai.cosytest.{CleanUp, DockerComposeSetup}
+import com.feedzai.cosytest.{CleanUp, DockerComposeSetup, Utils}
 import org.scalatest.{FlatSpec, MustMatchers}
+
 import scala.concurrent.duration._
 
 class HealthCheckSpec extends FlatSpec with MustMatchers with CleanUp {
 
   val setup = DockerComposeSetup(
-    "healthy",
+    Utils.randomSetupName,
     Seq(Paths.get("src", "test", "resources", "docker-compose.yml")),
     Paths.get("").toAbsolutePath,
     Map.empty
   )
 
   val unhealthySetup = DockerComposeSetup(
-    "unhealthy",
+    Utils.randomSetupName,
     Seq(Paths.get("src", "test", "resources", "docker-compose-unhealthy.yml")),
     Paths.get("").toAbsolutePath,
     Map.empty
   )
+
+  override def dockerSetups = Seq(setup, unhealthySetup)
 
   /*
      Is container with health check
@@ -70,7 +73,7 @@ class HealthCheckSpec extends FlatSpec with MustMatchers with CleanUp {
     setup.dockerComposeUp() mustEqual true
     val id = setup.getServiceContainerIds("container1")
     id.size mustBe 1
-    setup.waitForHealthyContainer(id.head, 20.seconds) mustBe true
+    setup.waitForHealthyContainer(id.head, 5.seconds) mustBe true
     setup.dockerComposeDown() mustEqual true
   }
 
@@ -83,13 +86,13 @@ class HealthCheckSpec extends FlatSpec with MustMatchers with CleanUp {
 
   it should "Succeed to wait for all containers be in healthy state" in {
     setup.dockerComposeUp() mustEqual true
-    setup.waitForAllHealthyContainers(20.seconds) mustBe true
+    setup.waitForAllHealthyContainers(5.seconds) mustBe true
     setup.dockerComposeDown() mustEqual true
   }
 
   it should "Fail to wait for all containers be in healthy state" in {
     unhealthySetup.dockerComposeUp() mustEqual true
-    unhealthySetup.waitForAllHealthyContainers(20.seconds) mustBe false
+    unhealthySetup.waitForAllHealthyContainers(5.seconds) mustBe false
     unhealthySetup.dockerComposeDown() mustEqual true
   }
 }

@@ -2,17 +2,19 @@ package com.feedzai.cosytest.core
 
 import java.nio.file.Paths
 
-import com.feedzai.cosytest.{CleanUp, DockerComposeSetup}
+import com.feedzai.cosytest.{CleanUp, DockerComposeSetup, Utils}
 import org.scalatest.{FlatSpec, MustMatchers}
 
 class ServiceMappedPortSpec extends FlatSpec with MustMatchers with CleanUp {
 
   val setup = DockerComposeSetup(
-    "healthy",
+    Utils.randomSetupName,
     Seq(Paths.get("src", "test", "resources", "docker-compose.yml")),
     Paths.get("").toAbsolutePath,
     Map.empty
   )
+
+  override def dockerSetups = Seq(setup)
 
   it should "Return an empty list of ports when no containers exist" in {
     setup.getServiceMappedPort("container1", 80) mustEqual Seq.empty

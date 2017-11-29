@@ -10,8 +10,6 @@ import scala.util.{Failure, Success}
 
 /**
  *   Trait used to clean up docker environment if tests leave system dirty.
- *
- *   Note: Shouldn't be used if tests run in parallel
  */
 trait CleanUp extends TestSuite with BeforeAndAfterAll {
 
@@ -20,22 +18,26 @@ trait CleanUp extends TestSuite with BeforeAndAfterAll {
   private val WorkingDir = Paths.get("").toAbsolutePath
   private val setup = DockerComposeSetup("Dummy", Seq.empty, WorkingDir, Map.empty)
 
+  def dockerSetups: Seq[DockerComposeSetup]
+
   protected abstract override def afterAll(): Unit = {
     super.afterAll()
 
     // Fetch containers ids if present
-    val command = Seq("docker", "ps", "-aq")
-    val fetchedIds = setup.runCmdWithOutput(command, WorkingDir.toFile, Map.empty, 10.seconds)
+    val containerIds = dockerSetups.flatMap(setup => setup.getProjectContainerIds())
 
-    val removedContainers = fetchedIds match {
-      case Success(containers) => stopAllContainers(containers) && removeAllContainers(containers)
-      case Failure(f) =>
-        logger.warn("Failed to retrieve containers ids...", f)
-        false
+    if (containerIds.isEmpty) {
+      logger.info("No containers to remove.")
     }
 
+    val removedContainers = stopAllContainers(containerIds) && removeAllContainers(containerIds)
+
     // Remove docker networks
-    val removedNetworks = removeNetworks()
+    val removedNetworks = dockerSetups.forall(
+      setup =>
+        getNetworkId(setup.setupName)
+          .forall(removeNetwork)
+    )
 
     // Log cleanup state
     if (removedContainers && removedNetworks) {
@@ -67,8 +69,16 @@ trait CleanUp extends TestSuite with BeforeAndAfterAll {
     }
   }
 
-  private def removeNetworks(): Boolean = {
-    val command = Seq("docker", "network", "prune", "-f")
+  private def getNetworkId(network: String): Option[String] = {
+    val command = Seq("docker", "network", "ls", "--filter", s"name=${network}_default", "-q")
+    setup.runCmdWithOutput(command, WorkingDir.toFile, Map.empty, 10.seconds) match {
+      case Success(list) => if (list.nonEmpty) list.headOption else None
+      case Failure(_)    => None
+    }
+  }
+
+  private def removeNetwork(networkId: String): Boolean = {
+    val command = Seq("docker", "network", "rm", networkId)
     setup.runCmd(command, WorkingDir.toFile, Map.empty, 10.seconds)
   }
 }

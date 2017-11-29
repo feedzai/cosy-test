@@ -187,7 +187,7 @@ case class DockerComposeSetup(
         if (done) {
           result = eventBuilder.mkString
         } else {
-          Thread.sleep(10.seconds.toMillis)
+          Thread.sleep(1.seconds.toMillis)
         }
       }
       result.nonEmpty
