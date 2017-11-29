@@ -14,7 +14,7 @@ class ServiceMappedPortSpec extends FlatSpec with MustMatchers with CleanUp {
     Map.empty
   )
 
-  it should "Return empty list of ports when no containers exist" in {
+  it should "Return an empty list of ports when no containers exist" in {
     setup.getServiceMappedPort("container1", 80) mustEqual Seq.empty
   }
 

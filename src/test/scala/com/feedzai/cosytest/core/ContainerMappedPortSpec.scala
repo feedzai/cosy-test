@@ -14,7 +14,7 @@ class ContainerMappedPortSpec extends FlatSpec with MustMatchers with CleanUp {
     Map.empty
   )
 
-  it should "Return empty string when no containers exist" in {
+  it should "Return an empty string when no containers exist" in {
     setup.getContainerMappedPort("h64387g", 80) mustEqual ""
   }
 

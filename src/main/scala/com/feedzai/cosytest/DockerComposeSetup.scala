@@ -219,7 +219,7 @@ case class DockerComposeSetup(
       case Success(output) =>
         output
       case Failure(f) =>
-        logger.error(s"Failed while retrieving logs of ${serviceName.get}", f)
+        serviceName.foreach(name => logger.error(s"Failed while retrieving logs of $name", f))
         List.empty
     }
   }

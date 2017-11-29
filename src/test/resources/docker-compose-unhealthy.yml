@@ -9,6 +9,6 @@ services:
     ports:
       - "8082:80"
   container3:
-    build: "dockerfiles/healthy"
+    build: "dockerfiles/nohealthcheck"
     ports:
       - "8083:80"
