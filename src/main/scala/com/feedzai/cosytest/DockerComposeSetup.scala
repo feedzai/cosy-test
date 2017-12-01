@@ -312,7 +312,7 @@ case class DockerComposeSetup(
    * @param cwd working directory where command will be ran
    * @return a Try object with output lines list if succeeds
    */
-  def runCmdWithOutput(command: Seq[String],
+  private def runCmdWithOutput(command: Seq[String],
                        cwd: File,
                        envVars: Map[String, String],
                        timeout: Duration): Try[List[String]] = {
@@ -334,7 +334,7 @@ case class DockerComposeSetup(
    * @param cwd working directory where command will be ran
    * @return true if command ran with success
    */
-  def runCmd(command: Seq[String], cwd: File, envVars: Map[String, String], timeout: Duration): Boolean = {
+  private def runCmd(command: Seq[String], cwd: File, envVars: Map[String, String], timeout: Duration): Boolean = {
     val process =
       Process(command, cwd, envVars.toSeq: _*).run(ProcessLogger(_ => (), line => logger.debug(line)))
 

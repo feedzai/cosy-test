@@ -10,7 +10,7 @@ class IntegrationSpec extends FlatSpec with DockerComposeTestSuite with MustMatc
   override def dockerSetup = Some(
     DockerComposeSetup(
       "scalatest",
-      Seq(Paths.get("src", "test", "resources", "docker-compose-fixed-ports.yml")),
+      Seq(Paths.get("src", "test", "resources", "docker-compose-scalatest.yml")),
       Paths.get("").toAbsolutePath,
       Map.empty
     )
