@@ -5,6 +5,8 @@ import java.nio.file.Paths
 import com.feedzai.cosytest.{CleanUp, DockerComposeSetup, Utils}
 import org.scalatest.{FlatSpec, MustMatchers}
 
+import scala.util.Random
+
 class ContainerMappedPortSpec extends FlatSpec with MustMatchers with CleanUp {
 
   val setup = DockerComposeSetup(
@@ -25,7 +27,7 @@ class ContainerMappedPortSpec extends FlatSpec with MustMatchers with CleanUp {
     val idList = setup.getServiceContainerIds("container1")
     idList.size mustEqual 1
     idList.head.nonEmpty mustEqual true
-    val invalidId = idList.head.substring(0, idList.head.length() - 1) + "0"
+    val invalidId = Random.alphanumeric.take(idList.head.length()).mkString.toLowerCase
     setup.getContainerMappedPort(invalidId, 80) mustEqual ""
     setup.dockerComposeDown()
   }

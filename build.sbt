@@ -17,8 +17,6 @@ libraryDependencies ++= Seq(
   "io.gatling" % "gatling-test-framework" % "2.2.5" % Provided
 )
 
-parallelExecution in Test := false
-
 /* Extra metadata for releases */
 
 homepage := Some(url("https://github.com/feedzai/cosy-test"))
