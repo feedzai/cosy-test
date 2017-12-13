@@ -74,6 +74,33 @@ case class DockerComposeSetup(
     FileTools.zip(target.resolve(s"$fileName.zip").toAbsolutePath, files)
   }
 
+  /**
+    * Removes network and containers started by setup if still present.
+    *
+    * @return true if setup network and containers were removed with success otherwise false
+    */
+  def cleanUp(): Boolean = {
+    val containerIds = getProjectContainerIds()
+
+    val stoppedContainers = stopAllContainers(containerIds)
+    val removedContainers = removeAllContainers(containerIds)
+    val removedNetworks   = getNetworkId(setupName).forall(removeNetwork)
+
+    if (!stoppedContainers) {
+      logger.error("Failed to remove containers...")
+    }
+
+    if (!removedContainers) {
+      logger.error("Failed to remove containers...")
+    }
+
+    if (!removedNetworks) {
+      logger.error("Failed to remove networks...")
+    }
+
+    stoppedContainers && removedContainers && removedNetworks
+  }
+
   def getContainerMappedPort(containerId: String, port: Int): String = {
     val command = Seq(
       "docker",
@@ -237,6 +264,33 @@ case class DockerComposeSetup(
         logger.error("Failed while checking containers removal", f)
         false
     }
+  }
+
+  private def stopAllContainers(ids: Seq[String]): Boolean = {
+    ids.forall { id =>
+      val command = Seq("docker", "stop", id)
+      runCmd(command, workingDirectory.toFile, Map.empty, 1.minute)
+    }
+  }
+
+  private def removeAllContainers(ids: Seq[String]): Boolean = {
+    ids.forall { id =>
+      val command = Seq("docker", "rm", "-f", id)
+      runCmd(command, workingDirectory.toFile, Map.empty, 1.minute)
+    }
+  }
+
+  private def getNetworkId(network: String): Option[String] = {
+    val command = Seq("docker", "network", "ls", "--filter", s"name=${network}_default", "-q")
+    runCmdWithOutput(command, workingDirectory.toFile, Map.empty, 10.seconds) match {
+      case Success(list) => if (list.nonEmpty) list.headOption else None
+      case Failure(_)    => None
+    }
+  }
+
+  private def removeNetwork(networkId: String): Boolean = {
+    val command = Seq("docker", "network", "rm", networkId)
+    runCmd(command, workingDirectory.toFile, Map.empty, 10.seconds)
   }
 
   private def waitProcessExit(process: Process, timeout: Duration): Int = {

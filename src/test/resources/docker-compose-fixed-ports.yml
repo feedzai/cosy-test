@@ -3,12 +3,12 @@ services:
   container1:
     build: "dockerfiles/healthy"
     ports:
-      - "80"
+      - "8081:80"
   container2:
-    build: "dockerfiles/unhealthy"
+    build: "dockerfiles/healthy"
     ports:
-      - "80"
+      - "8082:80"
   container3:
-    build: "dockerfiles/nohealthcheck"
+    build: "dockerfiles/healthy"
     ports:
-      - "80"
+      - "8083:80"

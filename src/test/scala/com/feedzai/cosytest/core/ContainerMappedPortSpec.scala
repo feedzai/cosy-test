@@ -44,7 +44,7 @@ class ContainerMappedPortSpec extends FlatSpec with MustMatchers with CleanUp {
     val idList = setup.getServiceContainerIds("container1")
     idList.size mustEqual 1
     idList.head.nonEmpty mustEqual true
-    setup.getContainerMappedPort(idList.head, 80) mustEqual "8081"
+    setup.getContainerMappedPort(idList.head, 80).forall(_.isDigit) mustEqual true
     setup.dockerComposeDown()
   }
 

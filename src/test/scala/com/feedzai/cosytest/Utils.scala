@@ -1,7 +1,7 @@
 package com.feedzai.cosytest
 
-import jodd.util.RandomString
+import scala.util.Random
 
 object Utils {
-  def randomSetupName: String = RandomString.getInstance().randomAlphaNumeric(10).toLowerCase
+  def randomSetupName: String = Random.alphanumeric.take(10).mkString.toLowerCase
 }

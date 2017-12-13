@@ -35,7 +35,7 @@ class ServiceMappedPortSpec extends FlatSpec with MustMatchers with CleanUp {
   it should "Return the service list of ports mapped to binded port" in {
     setup.dockerComposeUp()
     setup.getServiceMappedPort("container1", 80).size mustEqual 1
-    setup.getServiceMappedPort("container1", 80).head mustEqual "8081"
+    setup.getServiceMappedPort("container1", 80).head.forall(_.isDigit) mustEqual true
     setup.dockerComposeDown()
   }
 

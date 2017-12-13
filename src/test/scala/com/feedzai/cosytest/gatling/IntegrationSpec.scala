@@ -13,7 +13,7 @@ class IntegrationSpec extends DockerComposeSimulation {
   override def dockerSetup = Some(
     DockerComposeSetup(
       "gatling",
-      Seq(Paths.get("src", "test", "resources", "docker-compose.yml")),
+      Seq(Paths.get("src", "test", "resources", "docker-compose-fixed-ports.yml")),
       Paths.get("").toAbsolutePath,
       Map.empty
     )
