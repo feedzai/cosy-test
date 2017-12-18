@@ -87,7 +87,7 @@ case class DockerComposeSetup(
     val removedNetworks   = getNetworkId(setupName).forall(removeNetwork)
 
     if (!stoppedContainers) {
-      logger.error("Failed to remove containers...")
+      logger.error("Failed to stop containers...")
     }
 
     if (!removedContainers) {
