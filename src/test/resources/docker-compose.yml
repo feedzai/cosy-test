@@ -1,0 +1,14 @@
+version: '3'
+services:
+  container1:
+    build: "dockerfiles/healthy"
+    ports:
+      - "80"
+  container2:
+    build: "dockerfiles/healthy"
+    ports:
+      - "80"
+  container3:
+    build: "dockerfiles/healthy"
+    ports:
+      - "80"
