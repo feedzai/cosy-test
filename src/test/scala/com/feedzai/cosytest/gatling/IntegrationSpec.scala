@@ -13,7 +13,7 @@ class IntegrationSpec extends DockerComposeSimulation {
   override def dockerSetup = Some(
     DockerComposeSetup(
       "gatling",
-      Seq(Paths.get("src", "test", "resources", "docker-compose-fixed-ports.yml")),
+      Seq(Paths.get("src", "test", "resources", "docker-compose-gatling.yml")),
       Paths.get("").toAbsolutePath,
       Map.empty
     )
@@ -22,7 +22,7 @@ class IntegrationSpec extends DockerComposeSimulation {
   beforeSimulation()
 
   private val HttpProtocol: HttpProtocolBuilder = http
-    .baseURL("http://localhost:8081")
+    .baseURL("http://localhost:8086")
 
   private val populationBuilder = {
     val getAction = http("Gatling simulation").get("")

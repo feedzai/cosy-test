@@ -14,7 +14,9 @@ scalacOptions ++= Seq(
 libraryDependencies ++= Seq(
   "org.slf4j" % "slf4j-api" % "1.7.25",
   "org.scalatest" %% "scalatest" % "3.0.4" % Provided,
-  "io.gatling" % "gatling-test-framework" % "2.2.5" % Provided
+  "io.gatling" % "gatling-test-framework" % "2.2.5" % Provided,
+  "com.novocode" % "junit-interface" % "0.11" % Provided,
+  "org.hamcrest" % "hamcrest-junit" % "2.0.0.0" % Test
 )
 
 /* Extra metadata for releases */
