@@ -4,8 +4,9 @@ import java.nio.file.Paths
 
 import com.feedzai.cosytest.{CleanUp, Utils}
 import org.scalatest.{FlatSpec, MustMatchers}
+import scala.concurrent.duration._
 
-class ProjectContainerIdsSpec extends FlatSpec with MustMatchers with CleanUp {
+class ProjectContainersSpec extends FlatSpec with MustMatchers with CleanUp {
 
   val setup = DockerComposeSetup(
     Utils.randomSetupName,
@@ -38,4 +39,18 @@ class ProjectContainerIdsSpec extends FlatSpec with MustMatchers with CleanUp {
     setup.dockerComposeDown()
   }
 
+  it should "Return an empty list of ips when project doesn't exist" in {
+    invalidSetup.getProjectContainerAddresses() mustEqual Seq.empty
+  }
+
+  it should "Return an empty list of ips when no containers exist" in {
+    setup.getProjectContainerAddresses() mustEqual Seq.empty
+  }
+
+  it should "Return Ip list of all services" in {
+    setup.up(2.minute)
+    setup.getProjectContainerAddresses().size mustEqual 3
+    setup.getProjectContainerAddresses().forall(_.isSiteLocalAddress) mustBe true
+    setup.down()
+  }
 }

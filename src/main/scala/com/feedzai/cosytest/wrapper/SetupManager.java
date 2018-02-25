@@ -69,7 +69,7 @@ public class SetupManager {
             Boolean started = dockerSetup.up(containerStartUpTimeout);
             if(!started) {
                 this.tearDown();
-                Assert.fail("Failed to start containers for setup " + dockerSetup.setupName() + "!");
+                Assert.fail("Failed to start containers for setup " + dockerSetup.projectName() + "!");
             }
             logger.info("Containers started!");
         }
@@ -90,7 +90,7 @@ public class SetupManager {
                 logger.info("Removing containers...");
                 Boolean removed = dockerSetup.down();
                 Assert.assertThat(
-                        "Failed to remove containers for setup " + dockerSetup.setupName() + "!",
+                        "Failed to remove containers for setup " + dockerSetup.projectName() + "!",
                         removed,
                         is(true)
                 );

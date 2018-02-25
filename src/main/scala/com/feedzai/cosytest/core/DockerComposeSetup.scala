@@ -1,6 +1,7 @@
 package com.feedzai.cosytest.core
 
 import java.io.File
+import java.net.InetAddress
 import java.nio.file.{Path, Paths}
 
 import com.feedzai.cosytest.utils.FileTools
@@ -12,8 +13,16 @@ import scala.concurrent.duration._
 import scala.sys.process.{Process, ProcessLogger}
 import scala.util.{Failure, Success, Try}
 
+/**
+ * The Docker Compose setup to be managed and to interact with.
+ *
+ * @param projectName      The Docker Compose project name.
+ * @param composeFiles     The Docker Compose files used to build the setup environment.
+ * @param workingDirectory The Docker Compose working directory
+ * @param environment      The environment variables provided to the setup environment.
+ */
 case class DockerComposeSetup(
-  setupName: String,
+  projectName: String,
   composeFiles: Seq[Path],
   workingDirectory: Path,
   environment: Map[String, String]
@@ -28,10 +37,10 @@ case class DockerComposeSetup(
    * Executes docker-compose up command using setup defined and waits for
    * all containers with healthchecks to be in a healthy state.
    *
-   * @param timeOut maximum time for all containers be in a healthy state
+   * @param timeout maximum time for all containers be in a healthy state
    * @return true if all containers started and achieved a healthy state otherwise false
    */
-  def up(timeOut: Duration): Boolean = dockerComposeUp() && waitForAllHealthyContainers(timeOut)
+  def up(timeout: Duration): Boolean = dockerComposeUp() && waitForAllHealthyContainers(timeout)
 
   /**
    * Executes docker-compose down command using setup defined.
@@ -78,14 +87,14 @@ case class DockerComposeSetup(
   /**
     * Removes network and containers started by setup if still present.
     *
-    * @return true if setup network and containers were removed with success otherwise false
+    * @return true if project network and containers were removed with success otherwise false
     */
-  def cleanUp(): Boolean = {
+  def cleanup(): Boolean = {
     val containerIds = getProjectContainerIds()
 
     val stoppedContainers = stopAllContainers(containerIds)
     val removedContainers = removeAllContainers(containerIds)
-    val removedNetworks   = getNetworkId(setupName).forall(removeNetwork)
+    val removedNetworks   = getProjectNetworkIds().forall(removeNetwork)
 
     if (!stoppedContainers) {
       logger.error("Failed to stop containers...")
@@ -102,6 +111,13 @@ case class DockerComposeSetup(
     stoppedContainers && removedContainers && removedNetworks
   }
 
+  /**
+    * Returns the port open in localhost mapped to container port.
+    *
+    * @param containerId
+    * @param port exposed from container
+    * @return string of open localhost port. Empty if a failure occurs
+    */
   def getContainerMappedPort(containerId: String, port: Int): String = {
     val command = Seq(
       "docker",
@@ -115,11 +131,17 @@ case class DockerComposeSetup(
     }
   }
 
+  /**
+    * Returns the list of container Ids associated to service.
+    *
+    * @param serviceName string
+    * @return list of container ids. If a failure occurs an empty list is returned
+    */
   def getServiceContainerIds(serviceName: String): List[String] = {
     val command =
       Seq("docker-compose") ++
         composeFileArguments(composeFiles) ++
-        Seq("-p", setupName, "ps", "-q", serviceName)
+        Seq("-p", projectName, "ps", "-q", serviceName)
 
     runCmdWithOutput(command, workingDirectory.toFile, environment, DefaultShortCommandTimeOut) match {
       case Success(output) =>
@@ -130,11 +152,26 @@ case class DockerComposeSetup(
     }
   }
 
+  /**
+    * Returns the list of container IP Addresses associated to service.
+    *
+    * @param serviceName string
+    * @return list of container ips.
+    */
+  def getServiceContainerAddresses(serviceName: String): List[InetAddress] = {
+    getServiceContainerIds(serviceName).flatMap(id => getContainerAddress(id))
+  }
+
+  /**
+    * Returns the list of container Ids associated to the project.
+    *
+    * @return list of container ids. If a failure occurs an empty list is returned.
+    */
   def getProjectContainerIds(): List[String] = {
     val command =
       Seq("docker-compose") ++
         composeFileArguments(composeFiles) ++
-        Seq("-p", setupName, "ps", "-q")
+        Seq("-p", projectName, "ps", "-q")
 
     runCmdWithOutput(command, workingDirectory.toFile, environment, DefaultShortCommandTimeOut) match {
       case Success(output) =>
@@ -145,11 +182,34 @@ case class DockerComposeSetup(
     }
   }
 
+  /**
+    * Returns the list of container IP Addresses associated to the project.
+    *
+    * @return list of container ips.
+    */
+  def getProjectContainerAddresses(): List[InetAddress] = {
+    getProjectContainerIds().flatMap(id => getContainerAddress(id))
+  }
+
+  /**
+    * Returns the list of network Ids associated to the project.
+    *
+    * @return list of network ids. If a failure occurs an empty list is returned.
+    */
+  def getProjectNetworkIds(): List[String] = {
+    getAllNetworkIds().filter(isNetworkFromProject)
+  }
+
+  /**
+    * Returns the list of services associated to the project.
+    *
+    * @return list of services. If a failure occurs an empty list is returned
+    */
   def getServices(): List[String] = {
     val command =
       Seq("docker-compose") ++
         composeFileArguments(composeFiles) ++
-        Seq("-p", setupName, "config", "--services")
+        Seq("-p", projectName, "config", "--services")
 
     runCmdWithOutput(command, workingDirectory.toFile, environment, DefaultShortCommandTimeOut) match {
       case Success(output) =>
@@ -160,6 +220,11 @@ case class DockerComposeSetup(
     }
   }
 
+  /**
+    * Checks if container has an health check.
+    *
+    * @return true if an health check is found, otherwise false.
+    */
   def isContainerWithHealthCheck(containerId: String): Boolean = {
     val command = Seq(
       "docker",
@@ -177,24 +242,41 @@ case class DockerComposeSetup(
     }
   }
 
+  /**
+    * Runs `docker-compose up` command
+    *
+    * @return true if command has run with success, otherwise false.
+    */
   def dockerComposeUp(): Boolean = {
     val command =
       Seq("docker-compose") ++
         composeFileArguments(composeFiles) ++
-        Seq("-p", setupName, "up", "-d")
+        Seq("-p", projectName, "up", "-d")
 
     runCmd(command, workingDirectory.toFile, environment, DefaultLongCommandTimeOut)
   }
 
+  /**
+    * Runs `docker-compose down` command
+    *
+    * @return true if command has run with success, otherwise false.
+    */
   def dockerComposeDown(): Boolean = {
     val command =
       Seq("docker-compose") ++
         composeFileArguments(composeFiles) ++
-        Seq("-p", setupName, "down")
+        Seq("-p", projectName, "down")
 
     runCmd(command, workingDirectory.toFile, environment, DefaultLongCommandTimeOut)
   }
 
+  /**
+    * Waits for container to be in an healthy state within the timeout interval.
+    *
+    * @param containerId of the container that will be checked
+    * @param timeout duration to be used until consider container unhealthy
+    * @return true if container is healthy, otherwise false.
+    */
   def waitForHealthyContainer(containerId: String, timeout: Duration): Boolean = {
     val command = Seq(
       "docker",
@@ -230,17 +312,29 @@ case class DockerComposeSetup(
     }
   }
 
+  /**
+    * Waits for all project containers with health checks to be in an healthy state within the timeout interval.
+    *
+    * @param timeout duration to be used until consider container unhealthy
+    * @return true if all containers are healthy, otherwise false.
+    */
   def waitForAllHealthyContainers(timeout: Duration): Boolean = {
     getProjectContainerIds()
       .filter(isContainerWithHealthCheck)
       .forall(waitForHealthyContainer(_, timeout))
   }
 
+  /**
+    * Returns all the logs or just service logs
+    *
+    * @param serviceName to retrieve logs
+    * @return a list of strings containing the logs if run with success, empty list otherwise.
+    */
   def getContainerLogs(serviceName: Option[String]): List[String] = {
     val command =
       Seq("docker-compose") ++
         composeFileArguments(composeFiles) ++
-        Seq("-p", setupName, "logs", "--no-color") ++
+        Seq("-p", projectName, "logs", "--no-color") ++
         serviceName
 
     runCmdWithOutput(command, workingDirectory.toFile, environment, DefaultShortCommandTimeOut) match {
@@ -252,11 +346,43 @@ case class DockerComposeSetup(
     }
   }
 
+  /**
+    * Returns the IP Address of the container.
+    *
+    * @param id of the container
+    * @return an InetAddress option if ip was discovered. Otherwise None.
+    */
+  def getContainerAddress(id: String): Option[InetAddress] = {
+    getAllNetworkIds().collectFirst {
+      case networkId if { getContainerAddress(id, networkId).isDefined } => getContainerAddress(id, networkId).get
+    }
+  }
+
+  /**
+    * Returns the IP Address (InetAddress) of the container.
+    *
+    * @param id of the container
+    * @param networkId containing the container
+    * @return an InetAddress option if ip was discovered. Otherwise None.
+    */
+  private def getContainerAddress(id: String, networkId: String): Option[InetAddress] = {
+    val cmd = Seq("docker", "inspect", "-f", s"""{{(index .Containers "$id").IPv4Address}}""", networkId)
+    runCmdWithOutput(cmd, workingDirectory.toFile, environment, DefaultShortCommandTimeOut) match {
+      case Success(Seq(ip, _*)) if ip.nonEmpty => Try(InetAddress.getByName(ip.replaceAll("\\/.*", ""))).toOption
+      case _ => None
+    }
+  }
+
+  /**
+    * Checks that all project containers have been removed.
+    *
+    * @return true if no containers remaining, false otherwise.
+    */
   def checkContainersRemoval(): Boolean = {
     val command =
       Seq("docker-compose") ++
         composeFileArguments(composeFiles) ++
-        Seq("-p", setupName, "ps", "-q")
+        Seq("-p", projectName, "ps", "-q")
 
     runCmdWithOutput(command, workingDirectory.toFile, environment, DefaultShortCommandTimeOut) match {
       case Success(output) =>
@@ -267,33 +393,76 @@ case class DockerComposeSetup(
     }
   }
 
+  /**
+    * Stops all containers.
+    *
+    * @param ids of the containers to be stopped
+    * @return true if all the containers stopped with success, false otherwise.
+    */
   private def stopAllContainers(ids: Seq[String]): Boolean = {
     ids.forall { id =>
       val command = Seq("docker", "stop", id)
-      runCmd(command, workingDirectory.toFile, Map.empty, 1.minute)
+      runCmd(command, workingDirectory.toFile, Map.empty, DefaultLongCommandTimeOut)
     }
   }
 
+  /**
+    * Removes all containers.
+    *
+    * @param ids of the containers to be stopped
+    * @return true if all the containers stopped with success, false otherwise.
+    */
   private def removeAllContainers(ids: Seq[String]): Boolean = {
     ids.forall { id =>
       val command = Seq("docker", "rm", "-f", id)
-      runCmd(command, workingDirectory.toFile, Map.empty, 1.minute)
+      runCmd(command, workingDirectory.toFile, Map.empty, DefaultLongCommandTimeOut)
     }
   }
 
-  private def getNetworkId(network: String): Option[String] = {
-    val command = Seq("docker", "network", "ls", "--filter", s"name=${network}_default", "-q")
-    runCmdWithOutput(command, workingDirectory.toFile, Map.empty, 10.seconds) match {
-      case Success(list) => if (list.nonEmpty) list.headOption else None
-      case Failure(_)    => None
+  /**
+    * Fetches all network Ids.
+    *
+    * @return a list of network ids.
+    */
+  private def getAllNetworkIds(): List[String] = {
+    val command = Seq("docker", "network", "ls", "-q")
+    runCmdWithOutput(command, workingDirectory.toFile, Map.empty, DefaultShortCommandTimeOut) match {
+      case Success(list) => list
+      case Failure(_)    => List.empty
     }
   }
 
+  /**
+    * Checks if network belongs to the project.
+    *
+    * @return true if it belongs, otherwise false.
+    */
+  private def isNetworkFromProject(id: String): Boolean = {
+    val command = Seq("docker", "network", "inspect", "-f", "{{ index .Labels \"com.docker.compose.project\"}}", id)
+    runCmdWithOutput(command, workingDirectory.toFile, Map.empty, DefaultShortCommandTimeOut) match {
+      case Success(Seq(`projectName`, _*)) => true
+      case _ => false
+    }
+  }
+
+  /**
+    * Removes the network.
+    *
+    * @param networkId to be removed
+    * @return true if network was successfully removed, otherwise false.
+    */
   private def removeNetwork(networkId: String): Boolean = {
     val command = Seq("docker", "network", "rm", networkId)
-    runCmd(command, workingDirectory.toFile, Map.empty, 10.seconds)
+    runCmd(command, workingDirectory.toFile, Map.empty, DefaultShortCommandTimeOut)
   }
 
+  /**
+    * Executes a process and waits until it be completed within a certain time interval.
+    *
+    * @param process to be executed
+    * @param timeout interval to consider process has failed
+    * @return process exit value.
+    */
   private def waitProcessExit(process: Process, timeout: Duration): Int = {
     val future = Future(blocking(process.exitValue()))
     try {
@@ -342,6 +511,12 @@ case class DockerComposeSetup(
     waitProcessExit(process, timeout) == 0
   }
 
+  /**
+    * Maps a list of Paths into a list of argument strings to be used by docker-compose command
+    *
+    * @param files to be used as docker-compose arguments
+    * @return a list of docker-compose arguments
+    */
   private def composeFileArguments(files: Seq[Path]): Seq[String] = {
     files.flatMap(file => Seq("-f", file.toString))
   }

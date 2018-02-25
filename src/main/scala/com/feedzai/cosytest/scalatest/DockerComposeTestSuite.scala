@@ -48,7 +48,7 @@ trait DockerComposeTestSuite extends TestSuite with BeforeAndAfterAll {
       logger.info("Starting containers...")
       val started = setup.up(containerStartUpTimeout.getOrElse(5.minutes))
       testFailed = !started
-      assert(started, s"Failed to start containers in test ${dockerSetup.get.setupName}!")
+      assert(started, s"Failed to start containers in test ${setup.projectName}!")
       logger.info("Containers started!")
     }
   }
@@ -74,7 +74,7 @@ trait DockerComposeTestSuite extends TestSuite with BeforeAndAfterAll {
         if (!keep) {
           logger.info("Removing containers...")
           val removed = setup.down()
-          assert(removed, s"Failed to remove containers in test ${setup.setupName}!")
+          assert(removed, s"Failed to remove containers in test ${setup.projectName}!")
           logger.info("Containers removed!")
         }
       }

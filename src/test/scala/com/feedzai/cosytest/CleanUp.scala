@@ -16,7 +16,7 @@ trait CleanUp extends TestSuite with BeforeAndAfterAll {
   protected abstract override def afterAll(): Unit = {
     super.afterAll()
 
-    if (dockerSetups.forall(_.cleanUp())) {
+    if (dockerSetups.forall(_.cleanup())) {
       logger.info("System is clean!")
     } else {
       logger.error("System is dirty...")
