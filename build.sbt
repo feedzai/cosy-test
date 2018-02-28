@@ -16,7 +16,8 @@ libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "3.0.4" % Provided,
   "io.gatling" % "gatling-test-framework" % "2.2.5" % Provided,
   "com.novocode" % "junit-interface" % "0.11" % Provided,
-  "org.hamcrest" % "hamcrest-junit" % "2.0.0.0" % Test
+  "org.hamcrest" % "hamcrest-junit" % "2.0.0.0" % Test,
+  "org.testng" % "testng" % "6.14.2" % Provided
 )
 
 /* Extra metadata for releases */
