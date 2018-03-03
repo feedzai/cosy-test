@@ -12,12 +12,23 @@ scalacOptions ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "org.slf4j" % "slf4j-api" % "1.7.25",
-  "org.scalatest" %% "scalatest" % "3.0.4" % Provided,
-  "io.gatling" % "gatling-test-framework" % "2.2.5" % Provided,
-  "com.novocode" % "junit-interface" % "0.11" % Provided,
-  "org.hamcrest" % "hamcrest-junit" % "2.0.0.0" % Test
+  "org.slf4j"         % "slf4j-api"              % "1.7.25",
+  "org.scalatest"     %% "scalatest"             % "3.0.4"   % Provided,
+  "io.gatling"        % "gatling-test-framework" % "2.2.5"   % Provided,
+  "com.novocode"      % "junit-interface"        % "0.11"    % Provided,
+  "org.hamcrest"      % "hamcrest-junit"         % "2.0.0.0" % Provided,
+  "org.testng"        % "testng"                 % "6.14.2"  % Provided,
+  "org.junit.jupiter" % "junit-jupiter-api"      % "5.1.0"   % Provided
 )
+
+/* Resolver needed for sbt-jupiter-interface */
+resolvers in ThisBuild += Resolver.jcenterRepo
+
+/* TestNG Settings */
+
+enablePlugins(TestNGPlugin)
+testNGVersion := "6.14.2"
+testNGSuites  := Seq("src/test/scala/com/feedzai/cosytest/testng/suite.xml")
 
 /* Extra metadata for releases */
 

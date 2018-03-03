@@ -1,4 +1,4 @@
-package com.feedzai.cosytest
+package com.feedzai.cosytest.utils
 
 import java.nio.file.{Files, Path, StandardOpenOption}
 import java.util.zip.{ZipEntry, ZipOutputStream}

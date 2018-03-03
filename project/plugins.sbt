@@ -11,3 +11,9 @@ addSbtPlugin("com.jsuereth" % "sbt-pgp" % "1.1.0")
 addSbtPlugin("com.lucidchart" % "sbt-scalafmt" % "1.14")
 
 addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.5.1")
+
+addSbtPlugin("de.johoop" % "sbt-testng-plugin" % "3.1.1")
+
+addSbtPlugin("net.aichler" % "sbt-jupiter-interface" % "0.7.0")
+
+resolvers += Resolver.jcenterRepo

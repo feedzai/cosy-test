@@ -2,7 +2,7 @@ package com.feedzai.cosytest.tools
 
 import java.nio.file.{Files, Path, Paths}
 
-import com.feedzai.cosytest.FileTools
+import com.feedzai.cosytest.utils.FileTools
 import org.scalatest.{BeforeAndAfterAll, FlatSpec, MustMatchers}
 
 import collection.JavaConverters._

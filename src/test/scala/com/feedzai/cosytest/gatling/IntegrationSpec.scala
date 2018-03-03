@@ -2,10 +2,11 @@ package com.feedzai.cosytest.gatling
 
 import java.nio.file.Paths
 
-import com.feedzai.cosytest.{DockerComposeSetup, DockerComposeSimulation}
+import com.feedzai.cosytest.core.DockerComposeSetup
 import io.gatling.http.Predef._
 import io.gatling.core.Predef._
 import io.gatling.http.protocol.HttpProtocolBuilder
+
 import scala.concurrent.duration._
 
 class IntegrationSpec extends DockerComposeSimulation {

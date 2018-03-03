@@ -1,7 +1,7 @@
-package com.feedzai.cosytest.junit;
+package com.feedzai.cosytest.junit4;
 
-import com.feedzai.cosytest.DockerComposeRule;
-import com.feedzai.cosytest.DockerComposeJavaSetup;
+import com.feedzai.cosytest.wrapper.DockerComposeJavaSetup;
+import com.feedzai.cosytest.wrapper.SetupManager;
 import org.junit.*;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
@@ -18,22 +18,21 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 
 public class IntegrationSpec {
 
-    private static Logger logger = LoggerFactory.getLogger(IntegrationSpec.class);
-
+    private static final Logger logger = LoggerFactory.getLogger(IntegrationSpec.class);
 
     private static final DockerComposeJavaSetup dockerSetup;
 
     static {
         dockerSetup = new DockerComposeJavaSetup(
-            "junittest",
-            Collections.singletonList(Paths.get("src", "test", "resources", "docker-compose-junit.yml")),
+            "junit4test",
+            Collections.singletonList(Paths.get("src", "test", "resources", "docker-compose-junit4.yml")),
             Paths.get("").toAbsolutePath(),
             new HashMap<>()
         );
     }
 
     @ClassRule
-    public static DockerComposeRule dockerComposeRule = new DockerComposeRule(dockerSetup);
+    public static DockerComposeRule dockerComposeRule = new DockerComposeRule(SetupManager.builder(dockerSetup).build());
 
     @Rule
     public TestWatcher testWatcher = new TestWatcher() {
@@ -45,7 +44,7 @@ public class IntegrationSpec {
 
     @BeforeClass
     public static void init() {
-        logger.info("Running JUnit Integration Spec!");
+        logger.info("Running JUnit 4 Integration Spec!");
     }
 
     @Test

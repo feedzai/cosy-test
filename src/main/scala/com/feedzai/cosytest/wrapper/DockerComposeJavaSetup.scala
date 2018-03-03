@@ -1,11 +1,12 @@
-package com.feedzai.cosytest
-
+package com.feedzai.cosytest.wrapper
 
 import java.nio.file.Path
 import java.time.Duration
 import java.util
 import java.util.Optional
 import java.util.concurrent.TimeUnit
+
+import com.feedzai.cosytest.core.DockerComposeSetup
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.FiniteDuration
