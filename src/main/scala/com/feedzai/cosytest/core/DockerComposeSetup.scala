@@ -421,11 +421,11 @@ case class DockerComposeSetup(
     * Copies a file from the container filesystem to the specified path in the host.
     *
     * @param containerId    Container identifier from which the file will be copied.
-    * @param hostPath       Path to file source in the host.
-    * @param containerPath  Path to file destination in the container.
+    * @param containerPath  Path to file source in the container.
+    * @param hostPath       Path to file destination in the host.
     * @return true if the file was copied successfully, otherwise false.
     */
-  def copyToHost(containerId: String, hostPath: Path, containerPath: Path): Boolean = {
+  def copyToHost(containerId: String, containerPath: Path, hostPath: Path): Boolean = {
     val command = Seq(
       "docker",
       "cp",
