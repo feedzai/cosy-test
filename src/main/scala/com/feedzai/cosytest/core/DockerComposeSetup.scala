@@ -401,12 +401,12 @@ case class DockerComposeSetup(
     * @param containerPath  Path to file destination in the container.
     * @return true if the file was copied successfully, otherwise false.
     */
-  def copyToContainer(containerId: String, hostPath: String, containerPath: String): Boolean = {
+  def copyToContainer(containerId: String, hostPath: Path, containerPath: Path): Boolean = {
     val command = Seq(
       "docker",
       "cp",
-      hostPath,
-      s"$containerId:$containerPath"
+      hostPath.toString,
+      Seq(containerId, ":", containerPath.toString).mkString
     )
 
     runCmdWithOutput(command, workingDirectory.toFile, environment, DefaultShortCommandTimeOut) match {
@@ -425,12 +425,12 @@ case class DockerComposeSetup(
     * @param containerPath  Path to file destination in the container.
     * @return true if the file was copied successfully, otherwise false.
     */
-  def copyToHost(containerId: String, hostPath: String, containerPath: String): Boolean = {
+  def copyToHost(containerId: String, hostPath: Path, containerPath: Path): Boolean = {
     val command = Seq(
       "docker",
       "cp",
-      s"$containerId:$containerPath",
-      hostPath
+      Seq(containerId, ":", containerPath.toString).mkString,
+      hostPath.toString
     )
 
     runCmdWithOutput(command, workingDirectory.toFile, environment, DefaultShortCommandTimeOut) match {
