@@ -1,6 +1,5 @@
 package com.feedzai.cosytest.core
 
-import java.io.File
 import java.nio.file.{Files, Paths}
 
 import com.feedzai.cosytest.{CleanUp, DockerComposeSetup, FileTools, Utils}
@@ -37,7 +36,6 @@ class ContainerFileCopySpec extends FlatSpec with MustMatchers with CleanUp {
     val copyFileDestination = Paths.get("/tmp/"+tempFile.getFileName.toString)
     setup.copyToHost(containerId, Paths.get("/opt/",tempFile.getFileName.toString), copyFileDestination) mustBe true
 
-    val copiedFile = new File(copyFileDestination.toAbsolutePath.toString)
     Source.fromFile(copyFileDestination.toFile).mkString mustEqual Source.fromFile(tempFile.toFile).mkString
 
     Files.delete(tempFile)
