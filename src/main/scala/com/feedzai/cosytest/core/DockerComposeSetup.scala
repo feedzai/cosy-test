@@ -1,8 +1,9 @@
-package com.feedzai.cosytest
+package com.feedzai.cosytest.core
 
 import java.io.File
 import java.nio.file.{Path, Paths}
 
+import com.feedzai.cosytest.utils.FileTools
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable.ListBuffer

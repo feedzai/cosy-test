@@ -3,7 +3,7 @@ package com.feedzai.cosytest.core
 import java.nio.file.{Files, Path, Paths}
 import java.util.zip.ZipFile
 
-import com.feedzai.cosytest.{CleanUp, DockerComposeSetup, Utils}
+import com.feedzai.cosytest.{CleanUp, Utils}
 import org.scalatest.{BeforeAndAfterAll, FlatSpec, MustMatchers}
 
 class DumpLogsSpec extends FlatSpec with MustMatchers with BeforeAndAfterAll with CleanUp {

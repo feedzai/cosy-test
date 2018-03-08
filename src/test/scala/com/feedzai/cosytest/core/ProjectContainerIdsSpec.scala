@@ -2,7 +2,7 @@ package com.feedzai.cosytest.core
 
 import java.nio.file.Paths
 
-import com.feedzai.cosytest.{CleanUp, DockerComposeSetup, Utils}
+import com.feedzai.cosytest.{CleanUp, Utils}
 import org.scalatest.{FlatSpec, MustMatchers}
 
 class ProjectContainerIdsSpec extends FlatSpec with MustMatchers with CleanUp {

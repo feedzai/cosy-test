@@ -1,7 +1,8 @@
-package com.feedzai.cosytest
+package com.feedzai.cosytest.gatling
 
 import java.nio.file.Path
 
+import com.feedzai.cosytest.core.DockerComposeSetup
 import io.gatling.core.Predef.Simulation
 
 import scala.concurrent.duration._

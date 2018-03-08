@@ -1,10 +1,11 @@
-package com.feedzai.cosytest
+package com.feedzai.cosytest.scalatest
 
 import java.nio.file.Path
 import java.util.concurrent.Semaphore
 
-import org.slf4j.LoggerFactory
+import com.feedzai.cosytest.core.DockerComposeSetup
 import org.scalatest.{Args, BeforeAndAfterAll, Status, TestSuite}
+import org.slf4j.LoggerFactory
 
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}

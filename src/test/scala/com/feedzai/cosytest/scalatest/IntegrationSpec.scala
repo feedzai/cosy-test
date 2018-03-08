@@ -2,7 +2,7 @@ package com.feedzai.cosytest.scalatest
 
 import java.nio.file.Paths
 
-import com.feedzai.cosytest.{DockerComposeSetup, DockerComposeTestSuite}
+import com.feedzai.cosytest.core.DockerComposeSetup
 import org.scalatest.{FlatSpec, MustMatchers}
 
 class IntegrationSpec extends FlatSpec with DockerComposeTestSuite with MustMatchers {

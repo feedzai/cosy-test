@@ -1,5 +1,6 @@
 package com.feedzai.cosytest
 
+import com.feedzai.cosytest.core.DockerComposeSetup
 import org.scalatest.{BeforeAndAfterAll, TestSuite}
 import org.slf4j.LoggerFactory
 
