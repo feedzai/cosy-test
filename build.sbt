@@ -11,6 +11,11 @@ scalacOptions ++= Seq(
   "-Xlint", "-Ywarn-unused-import", "-Xfatal-warnings"
 )
 
+scalacOptions in(Compile, doc) ++= Seq(scalaVersion.value).flatMap {
+  case v if v.startsWith("2.12") => Seq("-no-java-comments") // Workaround for scala/scala-dev#249
+  case _ => Seq()
+}
+
 libraryDependencies ++= Seq(
   "org.slf4j"         % "slf4j-api"              % "1.7.25",
   "org.scalatest"     %% "scalatest"             % "3.0.4"   % Provided,
