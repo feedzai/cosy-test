@@ -11,9 +11,8 @@ scalacOptions ++= Seq(
   "-Xlint", "-Ywarn-unused-import", "-Xfatal-warnings"
 )
 
-scalacOptions in(Compile, doc) ++= Seq(scalaVersion.value).flatMap {
-  case v if v.startsWith("2.12") => Seq("-no-java-comments") // Workaround for scala/scala-dev#249
-  case _ => Seq()
+scalacOptions in (Compile, doc) ++= {
+  if (scalaBinaryVersion.value == "2.12") Seq("-no-java-comments") else Seq.empty
 }
 
 libraryDependencies ++= Seq(
