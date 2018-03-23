@@ -11,6 +11,10 @@ scalacOptions ++= Seq(
   "-Xlint", "-Ywarn-unused-import", "-Xfatal-warnings"
 )
 
+scalacOptions in (Compile, doc) ++= {
+  if (scalaBinaryVersion.value == "2.12") Seq("-no-java-comments") else Seq.empty
+}
+
 libraryDependencies ++= Seq(
   "org.slf4j"         % "slf4j-api"              % "1.7.25",
   "org.scalatest"     %% "scalatest"             % "3.0.4"   % Provided,
