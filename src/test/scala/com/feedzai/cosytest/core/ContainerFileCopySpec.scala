@@ -2,7 +2,8 @@ package com.feedzai.cosytest.core
 
 import java.nio.file.{Files, Paths}
 
-import com.feedzai.cosytest.{CleanUp, DockerComposeSetup, FileTools, Utils}
+import com.feedzai.cosytest.utils.FileTools
+import com.feedzai.cosytest.{CleanUp, Utils}
 import org.scalatest.{FlatSpec, MustMatchers}
 
 import scala.io.Source

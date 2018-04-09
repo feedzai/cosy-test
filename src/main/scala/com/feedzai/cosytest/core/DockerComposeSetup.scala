@@ -406,7 +406,7 @@ case class DockerComposeSetup(
       "docker",
       "cp",
       hostPath.toString,
-      Seq(containerId, ":", containerPath.toString).mkString
+      s"$containerId:${containerPath.toString}"
     )
 
     runCmdWithOutput(command, workingDirectory.toFile, environment, DefaultShortCommandTimeOut) match {
