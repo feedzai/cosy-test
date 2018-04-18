@@ -394,6 +394,54 @@ case class DockerComposeSetup(
   }
 
   /**
+    * Copies a file from the host filesystem to the specified path in the container.
+    *
+    * @param containerId    Container identifier to which the file will be copied.
+    * @param hostPath       Path to file source in the host.
+    * @param containerPath  Path to file destination in the container.
+    * @return true if the file was copied successfully, otherwise false.
+    */
+  def copyToContainer(containerId: String, hostPath: Path, containerPath: Path): Boolean = {
+    val command = Seq(
+      "docker",
+      "cp",
+      hostPath.toString,
+      s"$containerId:${containerPath.toString}"
+    )
+
+    runCmdWithOutput(command, workingDirectory.toFile, environment, DefaultShortCommandTimeOut) match {
+      case Success(output) => output.isEmpty
+      case Failure(f) =>
+        logger.error(s"Failed to copy file to container $containerId ", f.getCause)
+        false
+    }
+  }
+
+  /**
+    * Copies a file from the container filesystem to the specified path in the host.
+    *
+    * @param containerId    Container identifier from which the file will be copied.
+    * @param containerPath  Path to file source in the container.
+    * @param hostPath       Path to file destination in the host.
+    * @return true if the file was copied successfully, otherwise false.
+    */
+  def copyToHost(containerId: String, containerPath: Path, hostPath: Path): Boolean = {
+    val command = Seq(
+      "docker",
+      "cp",
+      Seq(containerId, ":", containerPath.toString).mkString,
+      hostPath.toString
+    )
+
+    runCmdWithOutput(command, workingDirectory.toFile, environment, DefaultShortCommandTimeOut) match {
+      case Success(output) => output.isEmpty
+      case Failure(f) =>
+        logger.error(s"Failed to copy file to container $containerId ", f.getCause)
+        false
+    }
+  }
+
+  /**
     * Stops all containers.
     *
     * @param ids of the containers to be stopped
