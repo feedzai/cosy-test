@@ -27,11 +27,11 @@ trait DockerComposeTestSuite extends TestSuite with BeforeAndAfterAll {
   def containerStartUpTimeout: Option[Duration] = None
 
   /**
-   * Semaphore used to control the number of test running in parallel
+   * Semaphore used to control the number of tests running in parallel
    */
   def parallelTestLimitSemaphore: Semaphore = new Semaphore(1, true)
 
-  private var testFailed: Boolean = false
+  protected var testFailed: Boolean = false
 
   protected abstract override def runTest(testName: String, args: Args): Status = {
     val result = super.runTest(testName, args)
