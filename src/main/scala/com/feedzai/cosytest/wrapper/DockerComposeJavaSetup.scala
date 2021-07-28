@@ -16,19 +16,38 @@ import scala.util.Try
 /**
  * The Docker Compose setup to be managed and to interact with.
  *
- * @param projectName      The Docker Compose project name.
- * @param composeFiles     The Docker Compose files used to build the setup environment.
- * @param workingDirectory The Docker Compose working directory
- * @param environment      The environment variables provided to the setup environment.
+ * @param projectName         The Docker Compose project name.
+ * @param composeFiles        The Docker Compose files used to build the setup environment.
+ * @param workingDirectory    The Docker Compose working directory
+ * @param environment         The environment variables provided to the setup environment.
+ * @param longCommandTimeOut  The timeout for long commands.
+ * @param shortCommandTimeOut The timeout for small commands.
  */
 case class DockerComposeJavaSetup(
   projectName: String,
   composeFiles: util.List[Path],
   workingDirectory: Path,
-  environment: util.Map[String, String]
+  environment: util.Map[String, String],
+  longCommandTimeOut: Duration,
+  shortCommandTimeOut: Duration
 ){
 
-  val dockerSetup = DockerComposeSetup(projectName, composeFiles.asScala, workingDirectory, environment.asScala.toMap)
+  def this(
+    projectName: String,
+    composeFiles: util.List[Path],
+    workingDirectory: Path,
+    environment: util.Map[String, String]) {
+    this(projectName, composeFiles, workingDirectory, environment, Duration.ofMinutes(5), Duration.ofMinutes(1))
+  }
+
+  val dockerSetup = DockerComposeSetup(
+    projectName,
+    composeFiles.asScala,
+    workingDirectory,
+    environment.asScala.toMap,
+    new FiniteDuration(longCommandTimeOut.toMinutes, TimeUnit.MINUTES),
+    new FiniteDuration(shortCommandTimeOut.toMinutes, TimeUnit.MINUTES)
+  )
 
   /**
     * Executes docker-compose up command using setup defined and waits for

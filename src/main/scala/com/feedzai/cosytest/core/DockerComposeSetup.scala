@@ -16,22 +16,23 @@ import scala.util.{Failure, Success, Try}
 /**
  * The Docker Compose setup to be managed and to interact with.
  *
- * @param projectName      The Docker Compose project name.
- * @param composeFiles     The Docker Compose files used to build the setup environment.
- * @param workingDirectory The Docker Compose working directory
- * @param environment      The environment variables provided to the setup environment.
+ * @param projectName         The Docker Compose project name.
+ * @param composeFiles        The Docker Compose files used to build the setup environment.
+ * @param workingDirectory    The Docker Compose working directory
+ * @param environment         The environment variables provided to the setup environment.
+ * @param longCommandTimeOut  The timeout for long commands.
+ * @param shortCommandTimeOut The timeout for small commands.
  */
 case class DockerComposeSetup(
   projectName: String,
   composeFiles: Seq[Path],
   workingDirectory: Path,
-  environment: Map[String, String]
+  environment: Map[String, String],
+  longCommandTimeOut: FiniteDuration = 5.minutes,
+  shortCommandTimeOut: FiniteDuration = 1.minutes
 ) {
   private val logger = LoggerFactory.getLogger(getClass)
   implicit val executionContext: ExecutionContext = ExecutionContext.Implicits.global
-
-  private val DefaultLongCommandTimeOut = 5.minutes
-  private val DefaultShortCommandTimeOut = 1.minutes
 
   /**
    * Executes docker-compose up command using setup defined and waits for
@@ -125,7 +126,7 @@ case class DockerComposeSetup(
       containerId,
       port.toString
     )
-    runCmdWithOutput(command, workingDirectory.toFile, environment, DefaultShortCommandTimeOut) match {
+    runCmdWithOutput(command, workingDirectory.toFile, environment, shortCommandTimeOut) match {
       case Success(output) if output.nonEmpty => output.head.replaceAll("^.+:", "")
       case _                                  => ""
     }
@@ -143,7 +144,7 @@ case class DockerComposeSetup(
         composeFileArguments(composeFiles) ++
         Seq("-p", projectName, "ps", "-q", serviceName)
 
-    runCmdWithOutput(command, workingDirectory.toFile, environment, DefaultShortCommandTimeOut) match {
+    runCmdWithOutput(command, workingDirectory.toFile, environment, shortCommandTimeOut) match {
       case Success(output) =>
         output
       case Failure(f) =>
@@ -173,7 +174,7 @@ case class DockerComposeSetup(
         composeFileArguments(composeFiles) ++
         Seq("-p", projectName, "ps", "-q")
 
-    runCmdWithOutput(command, workingDirectory.toFile, environment, DefaultShortCommandTimeOut) match {
+    runCmdWithOutput(command, workingDirectory.toFile, environment, shortCommandTimeOut) match {
       case Success(output) =>
         output
       case Failure(f) =>
@@ -211,7 +212,7 @@ case class DockerComposeSetup(
         composeFileArguments(composeFiles) ++
         Seq("-p", projectName, "config", "--services")
 
-    runCmdWithOutput(command, workingDirectory.toFile, environment, DefaultShortCommandTimeOut) match {
+    runCmdWithOutput(command, workingDirectory.toFile, environment, shortCommandTimeOut) match {
       case Success(output) =>
         output
       case Failure(f) =>
@@ -233,7 +234,7 @@ case class DockerComposeSetup(
       "--format={{ .State.Health }}"
     )
 
-    runCmdWithOutput(command, workingDirectory.toFile, environment, DefaultShortCommandTimeOut) match {
+    runCmdWithOutput(command, workingDirectory.toFile, environment, shortCommandTimeOut) match {
       case Success(output) =>
         output.nonEmpty && output.size == 1 && output.head != "<nil>"
       case Failure(f) =>
@@ -253,7 +254,7 @@ case class DockerComposeSetup(
         composeFileArguments(composeFiles) ++
         Seq("-p", projectName, "up", "-d")
 
-    runCmd(command, workingDirectory.toFile, environment, DefaultLongCommandTimeOut)
+    runCmd(command, workingDirectory.toFile, environment, longCommandTimeOut)
   }
 
   /**
@@ -267,7 +268,7 @@ case class DockerComposeSetup(
         composeFileArguments(composeFiles) ++
         Seq("-p", projectName, "down")
 
-    runCmd(command, workingDirectory.toFile, environment, DefaultLongCommandTimeOut)
+    runCmd(command, workingDirectory.toFile, environment, longCommandTimeOut)
   }
 
   /**
@@ -292,7 +293,7 @@ case class DockerComposeSetup(
       while (!done) {
         val eventBuilder = new StringBuilder()
         val process = Process(command).run(ProcessLogger(line => eventBuilder.append(line), line => logger.debug(line)))
-        val exitValue = waitProcessExit(process, DefaultShortCommandTimeOut)
+        val exitValue = waitProcessExit(process, shortCommandTimeOut)
         done = exitValue == 0 && eventBuilder.nonEmpty && eventBuilder.mkString == "healthy"
         if (done) {
           result = eventBuilder.mkString
@@ -337,7 +338,7 @@ case class DockerComposeSetup(
         Seq("-p", projectName, "logs", "--no-color") ++
         serviceName
 
-    runCmdWithOutput(command, workingDirectory.toFile, environment, DefaultShortCommandTimeOut) match {
+    runCmdWithOutput(command, workingDirectory.toFile, environment, shortCommandTimeOut) match {
       case Success(output) =>
         output
       case Failure(f) =>
@@ -367,7 +368,7 @@ case class DockerComposeSetup(
     */
   private def getContainerAddress(id: String, networkId: String): Option[InetAddress] = {
     val cmd = Seq("docker", "inspect", "-f", s"""{{(index .Containers "$id").IPv4Address}}""", networkId)
-    runCmdWithOutput(cmd, workingDirectory.toFile, environment, DefaultShortCommandTimeOut) match {
+    runCmdWithOutput(cmd, workingDirectory.toFile, environment, shortCommandTimeOut) match {
       case Success(Seq(ip, _*)) if ip.nonEmpty => Try(InetAddress.getByName(ip.replaceAll("\\/.*", ""))).toOption
       case _ => None
     }
@@ -384,7 +385,7 @@ case class DockerComposeSetup(
         composeFileArguments(composeFiles) ++
         Seq("-p", projectName, "ps", "-q")
 
-    runCmdWithOutput(command, workingDirectory.toFile, environment, DefaultShortCommandTimeOut) match {
+    runCmdWithOutput(command, workingDirectory.toFile, environment, shortCommandTimeOut) match {
       case Success(output) =>
         output.isEmpty
       case Failure(f) =>
@@ -409,7 +410,7 @@ case class DockerComposeSetup(
       s"$containerId:${containerPath.toString}"
     )
 
-    runCmdWithOutput(command, workingDirectory.toFile, environment, DefaultShortCommandTimeOut) match {
+    runCmdWithOutput(command, workingDirectory.toFile, environment, shortCommandTimeOut) match {
       case Success(output) => output.isEmpty
       case Failure(f) =>
         logger.error(s"Failed to copy file to container $containerId ", f.getCause)
@@ -433,7 +434,7 @@ case class DockerComposeSetup(
       hostPath.toString
     )
 
-    runCmdWithOutput(command, workingDirectory.toFile, environment, DefaultShortCommandTimeOut) match {
+    runCmdWithOutput(command, workingDirectory.toFile, environment, shortCommandTimeOut) match {
       case Success(output) => output.isEmpty
       case Failure(f) =>
         logger.error(s"Failed to copy file to container $containerId ", f.getCause)
@@ -450,7 +451,7 @@ case class DockerComposeSetup(
   private def stopAllContainers(ids: Seq[String]): Boolean = {
     ids.forall { id =>
       val command = Seq("docker", "stop", id)
-      runCmd(command, workingDirectory.toFile, Map.empty, DefaultLongCommandTimeOut)
+      runCmd(command, workingDirectory.toFile, Map.empty, longCommandTimeOut)
     }
   }
 
@@ -463,7 +464,7 @@ case class DockerComposeSetup(
   private def removeAllContainers(ids: Seq[String]): Boolean = {
     ids.forall { id =>
       val command = Seq("docker", "rm", "-f", id)
-      runCmd(command, workingDirectory.toFile, Map.empty, DefaultLongCommandTimeOut)
+      runCmd(command, workingDirectory.toFile, Map.empty, longCommandTimeOut)
     }
   }
 
@@ -474,7 +475,7 @@ case class DockerComposeSetup(
     */
   private def getAllNetworkIds(): List[String] = {
     val command = Seq("docker", "network", "ls", "-q")
-    runCmdWithOutput(command, workingDirectory.toFile, Map.empty, DefaultShortCommandTimeOut) match {
+    runCmdWithOutput(command, workingDirectory.toFile, Map.empty, shortCommandTimeOut) match {
       case Success(list) => list
       case Failure(_)    => List.empty
     }
@@ -487,7 +488,7 @@ case class DockerComposeSetup(
     */
   private def isNetworkFromProject(id: String): Boolean = {
     val command = Seq("docker", "network", "inspect", "-f", "{{ index .Labels \"com.docker.compose.project\"}}", id)
-    runCmdWithOutput(command, workingDirectory.toFile, Map.empty, DefaultShortCommandTimeOut) match {
+    runCmdWithOutput(command, workingDirectory.toFile, Map.empty, shortCommandTimeOut) match {
       case Success(Seq(`projectName`, _*)) => true
       case _ => false
     }
@@ -501,7 +502,7 @@ case class DockerComposeSetup(
     */
   private def removeNetwork(networkId: String): Boolean = {
     val command = Seq("docker", "network", "rm", networkId)
-    runCmd(command, workingDirectory.toFile, Map.empty, DefaultShortCommandTimeOut)
+    runCmd(command, workingDirectory.toFile, Map.empty, shortCommandTimeOut)
   }
 
   /**
